@@ -9,6 +9,16 @@ async function bootstrap() {
     .setTitle('Finnhub Stocks')
     .setDescription('Finnhub stocks test API')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        name: 'authorization',
+        bearerFormat: 'Bearer',
+        scheme: 'Bearer',
+      },
+      'authorization',
+    )
+    .addSecurityRequirements('authorization')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);

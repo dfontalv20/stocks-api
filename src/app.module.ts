@@ -7,10 +7,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { dbOptions } from './data-source';
 import { JwtModule } from '@nestjs/jwt';
 import { StringValue } from 'ms';
+import { StocksModule } from './stocks/stocks.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({ ...dbOptions, autoLoadEntities: true }),
     JwtModule.registerAsync({
       global: true,
@@ -25,6 +26,7 @@ import { StringValue } from 'ms';
       }),
     }),
     AuthModule,
+    StocksModule,
   ],
   controllers: [AppController],
   providers: [AppService],

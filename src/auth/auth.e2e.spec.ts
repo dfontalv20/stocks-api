@@ -1,24 +1,15 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from '../app.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { dbOptionsSqlite } from '../data-source';
 import { SignInDto } from './dto/sign-in.dto';
-import { addAppConfig } from '../utils/app';
+import { createTestApp } from '../utils/app';
 
 describe('AuthModule', () => {
   let app: INestApplication;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [TypeOrmModule.forRoot(dbOptionsSqlite), AppModule],
-    }).compile();
-
-    app = module.createNestApplication();
-    addAppConfig(app);
+    app = await createTestApp();
     await app.init();
   });
 
