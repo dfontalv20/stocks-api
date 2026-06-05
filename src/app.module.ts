@@ -4,14 +4,12 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { dbOptions } from './data-source';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      url: process.env.DB_CONNECTION,
-    }),
+    TypeOrmModule.forRoot({ ...dbOptions, autoLoadEntities: true }),
     AuthModule,
   ],
   controllers: [AppController],
