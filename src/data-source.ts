@@ -2,9 +2,8 @@ import { DataSource, type DataSourceOptions } from 'typeorm';
 import { config } from 'dotenv';
 import { ConfigService } from '@nestjs/config';
 
-config();
+config({ quiet: true });
 const configService = new ConfigService();
-console.log(__dirname + '/migrations/**/*{.js,.ts}');
 export const dbOptions: DataSourceOptions = {
   entities: [__dirname + '/**/*.entity.ts'],
   synchronize: false,
@@ -14,6 +13,14 @@ export const dbOptions: DataSourceOptions = {
   migrationsRun: false,
   migrationsTableName: 'migrations',
   migrationsTransactionMode: 'all',
+};
+
+export const dbOptionsSqlite: DataSourceOptions = {
+  entities: [__dirname + '/**/*.entity.ts'],
+  synchronize: true,
+  type: 'better-sqlite3',
+  database: ':memory:',
+  dropSchema: true,
 };
 
 export default new DataSource(dbOptions);

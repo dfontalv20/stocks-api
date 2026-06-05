@@ -1,18 +1,37 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { User } from './entities/user.entity';
 import { AuthService } from './auth.service';
+import { Test } from '@nestjs/testing';
+import { CreateUserDto } from './dto/create-user.dto';
+import bcrypt from 'bcrypt';
+import { Repository } from 'typeorm';
 
 describe('AuthService', () => {
   let service: AuthService;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [AuthService],
+    const module = await Test.createTestingModule({
+      providers: [
+        AuthService,
+        {
+          provide: getRepositoryToken(User),
+          useValue: {
+            save: (u) => Promise.resolve(u),
+            existsBy: () => Promise.resolve(false),
+          } satisfies Partial<Repository<User>>,
+        },
+      ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  it('should save password encrypted', async () => {
+    const userDto: CreateUserDto = {
+      password: '12345',
+      username: `test-user-${new Date().getTime()}`,
+    };
+    const user = await service.registerUser(userDto);
+    expect(bcrypt.compare(userDto.password, user.password)).toBeTruthy();
   });
 });
