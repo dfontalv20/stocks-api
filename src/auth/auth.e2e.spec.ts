@@ -6,6 +6,7 @@ import request from 'supertest';
 import { AppModule } from '../app.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dbOptionsSqlite } from '../data-source';
+import { SignInDto } from './dto/sign-in.dto';
 
 describe('AuthModule', () => {
   let app: INestApplication;
@@ -22,6 +23,10 @@ describe('AuthModule', () => {
 
   const sendSignUpRequest = (userDto: CreateUserDto) => {
     return request(app.getHttpServer()).post('/auth/signUp').send(userDto);
+  };
+
+  const sendSignInRequest = (userDto: SignInDto) => {
+    return request(app.getHttpServer()).post('/auth/signIn').send(userDto);
   };
 
   it('should create user', async () => {
@@ -64,5 +69,44 @@ describe('AuthModule', () => {
     expect(res1.status).toBe(HttpStatus.CREATED);
     const res2 = await sendSignUpRequest(userDto);
     expect(res2.ok).toBeFalsy();
+  });
+
+  it('should return access token on successful login', async () => {
+    const userDto: CreateUserDto = {
+      password: '12345',
+      username: `test-user-1`,
+    };
+    await sendSignUpRequest(userDto);
+    const res = await sendSignInRequest(userDto);
+    expect(res.status).toBe(HttpStatus.OK);
+    const body = res.body as { accessToken: string };
+    expect(body.accessToken).toBeDefined();
+    expect(typeof body.accessToken).toBe('string');
+  });
+
+  it('should return bad request if username is incorrect', async () => {
+    const userDto: CreateUserDto = {
+      password: '12345',
+      username: `test-user-1`,
+    };
+    await sendSignUpRequest(userDto);
+    const res = await sendSignInRequest({
+      ...userDto,
+      username: `test-user-2`,
+    });
+    expect(res.ok).toBeFalsy();
+  });
+
+  it('should return bad request if password is incorrect', async () => {
+    const userDto: CreateUserDto = {
+      password: '12345',
+      username: `test-user-1`,
+    };
+    await sendSignUpRequest(userDto);
+    const res = await sendSignInRequest({
+      ...userDto,
+      password: `12346`,
+    });
+    expect(res.ok).toBeFalsy();
   });
 });
