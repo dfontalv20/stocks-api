@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Request,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -56,5 +57,9 @@ export class AuthService {
       username: user.username,
     });
     return { accessToken };
+  }
+
+  async getUserById(id: number): Promise<User> {
+    return this.userRepository.findOneByOrFail({ id });
   }
 }

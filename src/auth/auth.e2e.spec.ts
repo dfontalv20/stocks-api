@@ -30,6 +30,12 @@ describe('AuthModule', () => {
     return request(app.getHttpServer()).post('/auth/signIn').send(userDto);
   };
 
+  const sendGetAuthUserRequest = (token: string) => {
+    return request(app.getHttpServer())
+      .get('/auth/user')
+      .set('Authorization', `Bearer ${token}`);
+  };
+
   it('should create user', async () => {
     const userDto: CreateUserDto = {
       password: '1234',
@@ -122,5 +128,24 @@ describe('AuthModule', () => {
       password: `12346`,
     });
     expect(res.ok).toBeFalsy();
+  });
+
+  it('should return auth user', async () => {
+    const userDto: CreateUserDto = {
+      password: '12345',
+      username: `test-user-1`,
+    };
+    await sendSignUpRequest(userDto);
+    const res = await sendSignInRequest(userDto);
+    const body = res.body as { accessToken: string };
+    const authUser = (await sendGetAuthUserRequest(body.accessToken))
+      .body as User;
+    expect(authUser).toBeDefined();
+    expect(authUser.username).toBe(userDto.username);
+  });
+
+  it('should return unauthorized when retrieveing auth user and token is invalid', async () => {
+    const res = await sendGetAuthUserRequest('');
+    expect(res.status).toBe(HttpStatus.UNAUTHORIZED);
   });
 });
