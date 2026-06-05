@@ -1,12 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
-import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../app.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dbOptionsSqlite } from '../data-source';
 import { SignInDto } from './dto/sign-in.dto';
+import { addAppConfig } from '../utils/app';
 
 describe('AuthModule', () => {
   let app: INestApplication;
@@ -17,7 +18,7 @@ describe('AuthModule', () => {
     }).compile();
 
     app = module.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe());
+    addAppConfig(app);
     await app.init();
   });
 
@@ -39,6 +40,19 @@ describe('AuthModule', () => {
     const user = res.body as User;
     expect(user.id).toBeDefined();
     expect(user.username).toMatch(userDto.username);
+  });
+
+  it('should not retrieve user password on create', async () => {
+    const userDto: CreateUserDto = {
+      password: '1234',
+      username: `test-user-${new Date().getTime()}`,
+    };
+    const res = await sendSignUpRequest(userDto);
+    expect(res.status).toBe(HttpStatus.CREATED);
+    const user = res.body as User;
+    expect(user.id).toBeDefined();
+    expect(user.username).toMatch(userDto.username);
+    expect(user.password).toBeUndefined();
   });
 
   it('should not allow user to have username shorter than 4 characters', async () => {
