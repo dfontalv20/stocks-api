@@ -1,8 +1,13 @@
-import { createTestApp } from '../utils/app';
+import { addAppConfig, createTestApp } from '../utils/app';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
 import { StockSearchResponse } from './stocks.types';
+import { Test } from '@nestjs/testing';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { dbOptionsSqlite } from '@/data-source';
+import { AppModule } from '@/app.module';
+import { StocksService } from './stocks.service';
 
 describe('StocksModule', () => {
   let app: INestApplication;
@@ -27,9 +32,27 @@ describe('StocksModule', () => {
   };
 
   beforeEach(async () => {
-    app = await createTestApp();
+    const result: StockSearchResponse = {
+      result: [{ description: '', displaySymbol: '', symbol: '', type: '' }],
+      count: 1,
+    };
+    const mockStocksService = {
+      getStocks: jest.fn(() => Promise.resolve(result)),
+    } satisfies Partial<StocksService>;
+    const module = await Test.createTestingModule({
+      imports: [TypeOrmModule.forRoot(dbOptionsSqlite), AppModule],
+    })
+      .overrideProvider(StocksService)
+      .useValue(mockStocksService)
+      .compile();
+    app = module.createNestApplication();
+    addAppConfig(app);
     await app.init();
     accessToken = await createUser();
+  });
+
+  afterEach(async () => {
+    await app.close();
   });
 
   it('should return a list of stocks', async () => {

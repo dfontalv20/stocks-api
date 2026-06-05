@@ -8,6 +8,7 @@ import { dbOptions } from './data-source';
 import { JwtModule } from '@nestjs/jwt';
 import { StringValue } from 'ms';
 import { StocksModule } from './stocks/stocks.module';
+import { AlertsModule } from './alerts/alerts.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { StocksModule } from './stocks/stocks.module';
     }),
     AuthModule,
     StocksModule,
+    AlertsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

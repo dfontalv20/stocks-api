@@ -7,7 +7,7 @@ import { AuthGuard } from './auth.guard';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User])],
-  exports: [AuthGuard, AuthService],
+  exports: [AuthService, AuthGuard],
   controllers: [AuthController],
   providers: [AuthService, AuthGuard],
 })
