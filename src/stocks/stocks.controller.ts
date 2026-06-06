@@ -1,7 +1,8 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Query, UseGuards } from '@nestjs/common';
 import { StocksService } from './stocks.service';
 import { AuthGuard } from '../auth/auth.guard';
-import { GetStocksDto } from './dto/get-stocks.dto';
+import { GetStocksDto, StockSearchResponse } from './dto/get-stocks.dto';
+import { ApiResponse } from '@nestjs/swagger';
 
 @UseGuards(AuthGuard)
 @Controller('stocks')
@@ -9,6 +10,7 @@ export class StocksController {
   constructor(private readonly stocksService: StocksService) {}
 
   @Get()
+  @ApiResponse({ status: HttpStatus.OK, type: () => StockSearchResponse })
   async getStocks(@Query() params: GetStocksDto) {
     return this.stocksService.getStocks(params.search);
   }

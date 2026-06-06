@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { AxiosInstance } from 'axios';
-import { StockSearchResponse } from './stocks.types';
+import { StockSearchResponse } from './dto/get-stocks.dto';
 
 @Injectable()
 export class StocksService {

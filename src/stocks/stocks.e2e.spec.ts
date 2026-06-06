@@ -1,8 +1,8 @@
-import { addAppConfig, createTestApp } from '../utils/app';
+import { addAppConfig } from '../utils/app';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
-import { StockSearchResponse } from './stocks.types';
+import { StockSearchResponse } from './dto/get-stocks.dto';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dbOptionsSqlite } from '@/data-source';

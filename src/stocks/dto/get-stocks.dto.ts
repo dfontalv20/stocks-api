@@ -1,6 +1,26 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty } from 'class-validator';
 
+export class StockSearchItem {
+  @ApiProperty()
+  description: string;
+  @ApiProperty()
+  displaySymbol: string;
+  @ApiProperty()
+  symbol: string;
+  @ApiProperty()
+  type: string;
+}
+
+export class StockSearchResponse {
+  @ApiProperty({ type: [StockSearchItem] })
+  result: StockSearchItem[];
+  @ApiProperty()
+  count: number;
+}
+
 export class GetStocksDto {
+  @ApiProperty()
   @IsNotEmpty()
   search: string;
 }
