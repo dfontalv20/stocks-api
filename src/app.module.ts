@@ -9,10 +9,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { StringValue } from 'ms';
 import { StocksModule } from './stocks/stocks.module';
 import { AlertsModule } from './alerts/alerts.module';
+import { StocksGateway } from './stocks/stocks.gateway';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    EventEmitterModule.forRoot({ global: true }),
     TypeOrmModule.forRoot({ ...dbOptions, autoLoadEntities: true }),
     JwtModule.registerAsync({
       global: true,
@@ -31,6 +34,6 @@ import { AlertsModule } from './alerts/alerts.module';
     AlertsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, StocksGateway],
 })
 export class AppModule {}

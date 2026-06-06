@@ -4,15 +4,20 @@ import { createTestUser } from '@/utils/user';
 import { CreateAlertDto } from './dto/create-alert.dto';
 import request from 'supertest';
 import { Alert } from './entities/alert.entity';
+import { WsStocksData } from '@/stocks/dto/get-stocks.dto';
+import { AlertsController } from './alerts.controller';
+import { StocksGateway } from '@/stocks/stocks.gateway';
 
 describe('AlertsModule', () => {
   let app: INestApplication;
   let accessToken: string;
+  let stocksGateway: StocksGateway;
 
   beforeEach(async () => {
     app = await createTestApp();
     await app.init();
     accessToken = await createTestUser(app);
+    stocksGateway = app.get(StocksGateway);
   });
 
   afterEach(async () => {
@@ -93,5 +98,15 @@ describe('AlertsModule', () => {
       .post(`/alerts`)
       .send({ price: 100, stock: 'AAPL' });
     expect(res.status).toBe(HttpStatus.UNAUTHORIZED);
+  });
+
+  it('should handle trade update event', () => {
+    const tradeUpdate: WsStocksData = {
+      type: 'trade',
+      data: { p: 100, s: 'AAPL', t: 1, v: 1 },
+    };
+    const spy = jest.spyOn(AlertsController.prototype, 'handleTradeUpdate');
+    stocksGateway.handleMessage(tradeUpdate);
+    expect(spy).toHaveBeenCalledWith(tradeUpdate);
   });
 });

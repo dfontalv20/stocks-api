@@ -8,7 +8,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppModule } from '../app.module';
 import { dbOptionsSqlite } from '../data-source';
-
 export const addAppConfig = (app: INestApplication) => {
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new ClassSerializerInterceptor(new Reflector()));

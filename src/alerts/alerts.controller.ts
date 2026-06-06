@@ -15,6 +15,8 @@ import { User } from '@/auth/entities/user.entity';
 import { AuthGuard } from '@/auth/auth.guard';
 import { Alert, AlertResponse } from './entities/alert.entity';
 import { ApiCreatedResponse, ApiResponse } from '@nestjs/swagger';
+import { OnEvent } from '@nestjs/event-emitter';
+import { type WsStocksTradeData } from '@/stocks/dto/get-stocks.dto';
 
 @UseGuards(AuthGuard)
 @Controller('alerts')
@@ -45,5 +47,10 @@ export class AlertsController {
   remove(@Req() request: Request, @Param('id') id: string) {
     const user = request['user'] as User;
     return this.alertsService.remove(+id, user.id);
+  }
+
+  @OnEvent('trade.update')
+  handleTradeUpdate(data: WsStocksTradeData) {
+    // send notifications
   }
 }
