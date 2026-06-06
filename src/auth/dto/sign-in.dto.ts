@@ -1,17 +1,11 @@
-import { IsString, MinLength, IsOptional } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsOptional } from 'class-validator';
+import { ApiProperty, PickType } from '@nestjs/swagger';
+import { CreateUserDto } from './create-user.dto';
 
-export class SignInDto {
-  @ApiProperty()
-  @IsString()
-  @MinLength(4)
-  username: string;
-
-  @ApiProperty()
-  @IsString()
-  @MinLength(4)
-  password: string;
-
+export class SignInDto extends PickType(CreateUserDto, [
+  'username',
+  'password',
+]) {
   @ApiProperty()
   @IsString()
   @IsOptional()
