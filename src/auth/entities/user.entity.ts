@@ -20,4 +20,8 @@ export class User {
   @ApiProperty({ type: () => Alert })
   @OneToMany(() => Alert, (alert) => alert.user, { cascade: true })
   alerts: Alert[];
+
+  @ApiProperty()
+  @Column({ nullable: true, default: null })
+  fcmToken: string;
 }

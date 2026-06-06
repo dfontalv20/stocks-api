@@ -16,7 +16,7 @@ import { AuthGuard } from '@/auth/auth.guard';
 import { Alert, AlertResponse } from './entities/alert.entity';
 import { ApiCreatedResponse, ApiResponse } from '@nestjs/swagger';
 import { OnEvent } from '@nestjs/event-emitter';
-import { type WsStocksTradeData } from '@/stocks/dto/get-stocks.dto';
+import { type WsStocksData } from '@/stocks/dto/get-stocks.dto';
 
 @UseGuards(AuthGuard)
 @Controller('alerts')
@@ -50,7 +50,7 @@ export class AlertsController {
   }
 
   @OnEvent('trade.update')
-  handleTradeUpdate(data: WsStocksTradeData) {
-    // send notifications
+  handleTradeUpdate(data: WsStocksData) {
+    return this.alertsService.checkTrades(data);
   }
 }

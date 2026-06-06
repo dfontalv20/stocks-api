@@ -6,3 +6,11 @@ jest.mock('ws', () => {
     },
   };
 });
+
+jest.mock('@/firebase/firebase.service', () => {
+  return {
+    FirebaseService: jest.fn().mockImplementation(() => ({
+      sendNotification: jest.fn(),
+    })),
+  };
+});

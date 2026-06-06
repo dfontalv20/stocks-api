@@ -23,4 +23,4 @@ export interface WsStocksResponse<T extends string = string, D = undefined> {
 
 export type WsStocksData =
   | WsStocksResponse<'ping'>
-  | WsStocksResponse<'trade', WsStocksTradeData>;
+  | WsStocksResponse<'trade', WsStocksTradeData[]>;

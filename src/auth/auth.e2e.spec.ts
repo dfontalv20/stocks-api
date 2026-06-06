@@ -13,6 +13,10 @@ describe('AuthModule', () => {
     await app.init();
   });
 
+  afterEach(async () => {
+    await app.close();
+  });
+
   const sendSignUpRequest = (userDto: CreateUserDto) => {
     return request(app.getHttpServer()).post('/auth/signUp').send(userDto);
   };
@@ -122,9 +126,10 @@ describe('AuthModule', () => {
   });
 
   it('should return auth user', async () => {
-    const userDto: CreateUserDto = {
+    const userDto: SignInDto = {
       password: '12345',
       username: `test-user-1`,
+      fcmToken: 'fcm-token-1',
     };
     await sendSignUpRequest(userDto);
     const res = await sendSignInRequest(userDto);
@@ -133,6 +138,7 @@ describe('AuthModule', () => {
       .body as User;
     expect(authUser).toBeDefined();
     expect(authUser.username).toBe(userDto.username);
+    expect(authUser.fcmToken).toBe(userDto.fcmToken);
   });
 
   it('should return unauthorized when retrieveing auth user and token is invalid', async () => {

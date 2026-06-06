@@ -1,4 +1,4 @@
-import { IsString, MinLength } from 'class-validator';
+import { IsString, MinLength, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SignInDto {
@@ -11,4 +11,9 @@ export class SignInDto {
   @IsString()
   @MinLength(4)
   password: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  fcmToken?: string;
 }

@@ -11,6 +11,7 @@ import { StocksModule } from './stocks/stocks.module';
 import { AlertsModule } from './alerts/alerts.module';
 import { StocksGateway } from './stocks/stocks.gateway';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       }),
     }),
     AuthModule,
+    FirebaseModule,
     StocksModule,
     AlertsModule,
   ],

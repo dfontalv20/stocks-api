@@ -6,13 +6,16 @@ import {
 import { CreateAlertDto } from './dto/create-alert.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Alert } from './entities/alert.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
+import { WsStocksData } from '@/stocks/dto/get-stocks.dto';
+import { FirebaseService } from '@/firebase/firebase.service';
 
 @Injectable()
 export class AlertsService {
   constructor(
     @InjectRepository(Alert)
     private readonly alertsRepository: Repository<Alert>,
+    private readonly firebaseService: FirebaseService,
   ) {}
 
   async create(createAlertDto: CreateAlertDto & { userId: number }) {
@@ -39,5 +42,36 @@ export class AlertsService {
       throw new UnauthorizedException('Unauthorized');
     }
     return this.alertsRepository.delete(alert);
+  }
+
+  async checkTrades(info: WsStocksData) {
+    if (info.type !== 'trade') {
+      return;
+    }
+    const newPrices = new Map<string, number>();
+    info.data.forEach((trade) => {
+      newPrices.set(trade.s, trade.p);
+    });
+    const alerts = await this.alertsRepository.find({
+      where: { stock: In([...newPrices.keys()]) },
+      relations: { user: true },
+    });
+    const alertsToNotify = alerts.filter((alert) => {
+      const newPrice = newPrices.get(alert.stock);
+      if (newPrice === undefined) return false;
+      return alert.price < newPrice;
+    });
+
+    if (alertsToNotify.length === 0) return;
+
+    await this.firebaseService.sendNotification(
+      alertsToNotify
+        .filter((alert) => !!alert.user.fcmToken)
+        .map((alert) => ({
+          to: alert.user.fcmToken,
+          title: 'Trade Alert',
+          body: `The stock ${alert.stock} has reached your target price of ${alert.price}`,
+        })),
+    );
   }
 }

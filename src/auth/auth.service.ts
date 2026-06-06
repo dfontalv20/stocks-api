@@ -52,6 +52,10 @@ export class AuthService {
     if (!passwordMatches) {
       throw new UnauthorizedException('Invalid credentials');
     }
+    if (signInDto.fcmToken) {
+      user.fcmToken = signInDto.fcmToken;
+      await this.userRepository.save(user);
+    }
     const accessToken = await this.jwtService.signAsync({
       sub: user.id,
       username: user.username,

@@ -7,20 +7,28 @@ import { Alert } from './entities/alert.entity';
 import { WsStocksData } from '@/stocks/dto/get-stocks.dto';
 import { AlertsController } from './alerts.controller';
 import { StocksGateway } from '@/stocks/stocks.gateway';
+import {
+  FirebaseService,
+  NotificationMessage,
+} from '@/firebase/firebase.service';
+import waitForExpect from 'wait-for-expect';
 
 describe('AlertsModule', () => {
   let app: INestApplication;
   let accessToken: string;
   let stocksGateway: StocksGateway;
+  let firebaseService: FirebaseService;
 
   beforeEach(async () => {
     app = await createTestApp();
     await app.init();
-    accessToken = await createTestUser(app);
+    accessToken = await createTestUser(app, { fcmToken: 'test-fcm-token' });
     stocksGateway = app.get(StocksGateway);
+    firebaseService = app.get(FirebaseService);
   });
 
   afterEach(async () => {
+    jest.restoreAllMocks();
     await app.close();
   });
 
@@ -103,10 +111,36 @@ describe('AlertsModule', () => {
   it('should handle trade update event', () => {
     const tradeUpdate: WsStocksData = {
       type: 'trade',
-      data: { p: 100, s: 'AAPL', t: 1, v: 1 },
+      data: [{ p: 100, s: 'AAPL', t: 1, v: 1 }],
     };
     const spy = jest.spyOn(AlertsController.prototype, 'handleTradeUpdate');
     stocksGateway.handleMessage(tradeUpdate);
     expect(spy).toHaveBeenCalledWith(tradeUpdate);
+  });
+
+  it('should send notification when trade update matches alert', async () => {
+    const alert = { price: 100, stock: 'AAPL' };
+    await createAlert(alert);
+    const update = { p: 150, s: 'AAPL', t: 1, v: 1 };
+    const tradeUpdate: WsStocksData = {
+      type: 'trade',
+      data: [update],
+    };
+    let spy: jest.SpyInstance = jest.spyOn(
+      AlertsController.prototype,
+      'handleTradeUpdate',
+    );
+    stocksGateway.handleMessage(tradeUpdate);
+    expect(spy).toHaveBeenCalledWith(tradeUpdate);
+    spy = jest.spyOn(firebaseService, 'sendNotification');
+    await waitForExpect(() => {
+      expect(spy).toHaveBeenCalledWith([
+        {
+          to: 'test-fcm-token',
+          title: 'Trade Alert',
+          body: `The stock ${alert.stock} has reached your target price of ${alert.price}`,
+        } satisfies NotificationMessage,
+      ]);
+    });
   });
 });
