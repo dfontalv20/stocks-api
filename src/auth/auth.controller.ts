@@ -14,6 +14,7 @@ import { SignInDto } from './dto/sign-in.dto';
 import { User } from './entities/user.entity';
 import { AuthGuard } from './auth.guard';
 import { type Request } from 'express';
+import { ApiResponse, OmitType } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
@@ -33,6 +34,7 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Get('user')
   @HttpCode(HttpStatus.OK)
+  @ApiResponse({ type: () => OmitType(User, ['alerts']) })
   getUser(@Req() req: Request) {
     return req['user'] as User;
   }
