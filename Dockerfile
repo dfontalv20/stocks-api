@@ -1,0 +1,25 @@
+# Dependencies stage
+FROM node:24-alpine AS build
+RUN corepack enable
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
+COPY . .
+RUN pnpm build
+RUN pnpm prune --prod
+
+# Production stage
+FROM node:24-alpine AS production
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/package.json ./package.json
+
+USER node
+
+EXPOSE 3000
+
+CMD ["node", "dist/main"]

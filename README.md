@@ -1,98 +1,213 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Stocks API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Real-time stock price alerting service built with **NestJS 11**, **TypeORM** (Postgres), and **Finnhub** market data. Users register, set price alerts on stock symbols, and receive Firebase Cloud Messaging (FCM) push notifications when trade prices cross their threshold. A WebSocket gateway streams live Finnhub trades to connected clients and drives the alert engine via NestJS event emitters.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Prerequisites
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Node.js** >= 24 (runtime; Alpine `node:24-alpine` in Docker)
+- **pnpm** >= 11 (enable via `corepack enable`)
+- **PostgreSQL** 15+ (or a managed Postgres URL)
+- **(Optional) Docker** for containerised builds (see `Dockerfile`)
 
-## Project setup
+---
+
+## Installation
 
 ```bash
-$ pnpm install
+git clone <repo-url>
+cd stocks-api
+pnpm install
 ```
 
-## Compile and run the project
+> `pnpm-workspace.yaml` whitelists native builds (`bcrypt`, `better-sqlite3`, `firebase`, etc.) — no additional system dependencies required.
+
+---
+
+## Environment Variables
+
+Copy the template below into `.env` (the file is gitignored; do not commit secrets).
+
+```env
+# -- Database
+DB_CONNECTION=postgresql://user:pass@host:5432/db
+
+# -- JWT
+JWT_SECRET=CHANGE_ME
+JWT_EXPIRES_IN=1h           # optional; ms StringValue format
+
+# -- Finnhub (market data)
+FINNHUB_API_KEY=your_key
+FINNHUB_API_URL=https://finnhub.io/api/v1
+FINNHUB_WS_URL=wss://ws.finnhub.io
+
+# -- Firebase Admin (push notifications)
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account-file.json
+```
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `DB_CONNECTION` | Yes | — | PostgreSQL connection string |
+| `JWT_SECRET` | Yes | — | HMAC secret for signing JWTs |
+| `JWT_EXPIRES_IN` | No | `1h` | Token expiry (uses [`ms`](https://www.npmjs.com/package/ms) format) |
+| `FINNHUB_API_KEY` | Yes | — | Finnhub API key (REST + WebSocket) |
+| `FINNHUB_API_URL` | Yes | `https://finnhub.io/api/v1` | Finnhub REST base URL |
+| `FINNHUB_WS_URL` | Yes | `wss://ws.finnhub.io` | Finnhub WebSocket endpoint |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Yes | — | Path to Firebase service account JSON file |
+| `PORT` | No | `3000` | HTTP server listen port |
+
+---
+
+## Running the App
 
 ```bash
-# development
-$ pnpm run start
+# development (watch mode)
+pnpm run start:dev
 
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+# production
+pnpm run build
+pnpm run start:prod
 ```
 
-## Run tests
+---
+
+## Architecture & File Structure
+
+```
+src/
+├── main.ts                       # Bootstrap: Swagger, WsAdapter, ValidationPipe
+├── app.module.ts                 # Root module — global config, typeorm, jwt, event emitter
+├── data-source.ts                # TypeORM DataSource (Postgres + SQLite for e2e)
+├── setupTests.ts                 # Auto-mocks ws and firebase for unit tests
+├── auth/                         # Authentication & user management
+│   ├── auth.module.ts
+│   ├── auth.controller.ts        # POST /auth/signUp, /auth/signIn, GET /auth/user
+│   ├── auth.service.ts
+│   ├── auth.guard.ts             # Bearer JWT guard (attaches user to request)
+│   ├── dto/
+│   │   ├── create-user.dto.ts
+│   │   └── sign-in.dto.ts
+│   └── entities/
+│       └── user.entity.ts
+├── alerts/                       # Price alert CRUD + trade event handler
+│   ├── alerts.module.ts
+│   ├── alerts.controller.ts      # POST/GET/DELETE /alerts + @OnEvent('trade.update')
+│   ├── alerts.service.ts         # Check trades, notify via FCM
+│   ├── dto/
+│   │   └── create-alert.dto.ts
+│   └── entities/
+│       └── alert.entity.ts
+├── stocks/                       # Finnhub REST search + WebSocket gateway
+│   ├── stocks.module.ts
+│   ├── stocks.controller.ts      # GET /stocks?search=..., GET /stocks/:symbol
+│   ├── stocks.service.ts         # Finnhub HTTP client (axios)
+│   ├── stocks.gateway.ts         # Finnhub WS client + nest WS server + trade.update emitter
+│   └── dto/
+│       └── get-stocks.dto.ts
+├── firebase/                     # FCM push notification sender
+│   ├── firebase.module.ts
+│   └── firebase.service.ts
+├── migrations/                   # TypeORM migration files (timestamp-prefixed)
+└── utils/                        # Shared test helpers
+    ├── app.ts                    # createTestApp(), addAppConfig()
+    └── user.ts                   # createTestUser()
+```
+
+**Conventions:**
+- **kebab-case** for all files (`alert.entity.ts`, `create-alert.dto.ts`, `auth.guard.ts`)
+- **PascalCase** for classes, **camelCase** for methods/properties
+- DTOs use `class-validator` decorators; entities use TypeORM decorators
+- Controllers are thin — business logic lives in services
+- Event-driven cross-module communication via `@nestjs/event-emitter`
+
+---
+
+## Testing
 
 ```bash
-# unit tests
-$ pnpm run test
+# unit tests (src/**/*.spec.ts)
+pnpm test
 
-# e2e tests
-$ pnpm run test:e2e
+# e2e tests (src/**/*.e2e-spec.ts)
+pnpm test:e2e
 
-# test coverage
-$ pnpm run test:cov
+# single e2e test file
+pnpm test:e2e -- src/alerts/alerts.e2e.spec.ts
+
+# single test (by name)
+pnpm test:e2e -- src/alerts/alerts.e2e.spec.ts -t "should create an alert"
 ```
 
-## Deployment
+**Unit tests** auto-mock `ws` and `FirebaseService` via `src/setupTests.ts`.  
+**E2E tests** override TypeORM with an in-memory SQLite database (`better-sqlite3`, `synchronize: true`, `dropSchema: true`) using the `createTestApp()` helper from `src/utils/app.ts`. E2E specs live next to source modules (e.g. `src/alerts/alerts.e2e.spec.ts`), **not** in `test/`.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+---
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## API Documentation
+
+Interactive Swagger UI is available at `http://localhost:3000/api` (OpenAPI 3.0).  
+A YAML export is served at `http://localhost:3000/api.yaml`.
+
+All protected endpoints require a Bearer token obtained from `POST /auth/signIn`. Use the **Authorize** button in Swagger to set it globally.
+
+---
+
+## Database Migrations
+
+Schema changes are managed via TypeORM migrations (Postgres only; e2e tests use `synchronize: true`).
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+# generate a migration from entity changes
+pnpm migration:generate src/migrations/AddNewColumn
+
+# run pending migrations
+pnpm migration:run
+
+# revert last migration
+pnpm migration:revert
+
+# create an empty migration file
+pnpm migration:create src/migrations/MyCustomMigration
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Migrations live in `src/migrations/` and are timestamp-prefixed.
 
-## Resources
+---
 
-Check out a few resources that may come in handy when working with NestJS:
+## CI/CD
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+GitHub Actions (`.github/workflows/ci.yml`) runs on push/PR to `main`:
 
-## Support
+1. `pnpm install --frozen-lockfile`
+2. `pnpm run lint`
+3. `pnpm test` (unit tests)
+4. `pnpm run build`
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Two secrets required in the CI environment: `JWT_SECRET` and `FINNHUB_WS_URL` (no real Finnhub key needed — `ws` is mocked in unit tests). The remaining env vars (`DB_CONNECTION`, `FINNHUB_API_KEY`, etc.) can be dummy values since unit tests neither hit the database nor the network.
 
-## Stay in touch
+Docker builds use a multi-stage `Dockerfile` (`node:24-alpine` → `pnpm install --frozen-lockfile` → `nest build` → `pnpm prune --prod`), exposing port `3000`.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+---
+
+## Data Flow
+
+```
+Finnhub WS ──► StocksGateway ──► trade.update event ──► AlertsController.handleTradeUpdate
+                  │                                           │
+                  ▼                                           ▼
+            WS clients                                   AlertsService.checkTrades
+                  │                                           │
+                  ▼                                           ▼
+            (broadcast)                                FirebaseService.sendNotification
+```
+
+- `StocksGateway` opens a real Finnhub WebSocket connection on boot and reconnects with exponential backoff (1s → 30s cap).
+- Incoming trade payloads are emitted as `trade.update` events and broadcast to all connected WS clients.
+- The alert engine checks whether any user's alert price is below the trade price for that symbol; matched alerts receive an FCM push and are marked `notifiedAt`.
+
+---
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+UNLICENSED — proprietary.
