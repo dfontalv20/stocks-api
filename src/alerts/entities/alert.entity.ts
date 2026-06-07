@@ -25,7 +25,7 @@ export class Alert {
   price: number;
 
   @ApiProperty()
-  @Column({ nullable: true, default: null })
+  @Column({ nullable: true, default: null, utc: true })
   notifiedAt: Date;
 }
 
