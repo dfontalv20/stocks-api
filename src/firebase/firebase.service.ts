@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { App, initializeApp } from 'firebase-admin/app';
+import { App, applicationDefault, initializeApp } from 'firebase-admin/app';
 import { getMessaging } from 'firebase-admin/messaging';
-import { credential } from 'firebase-admin';
 
 export type NotificationMessage = {
   title: string;
@@ -14,17 +12,13 @@ export type NotificationMessage = {
 export class FirebaseService {
   firebaseApp: App;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor() {
     this.initApp();
   }
 
   private initApp() {
     this.firebaseApp = initializeApp({
-      credential: credential.cert({
-        projectId: this.configService.get<string>('FIREBASE_PROJECT_ID'),
-        clientEmail: this.configService.get<string>('FIREBASE_CLIENT_EMAIL'),
-        privateKey: this.configService.get<string>('FIREBASE_PRIVATE_KEY'),
-      }),
+      credential: applicationDefault(),
     });
   }
 

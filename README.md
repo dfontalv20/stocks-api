@@ -43,9 +43,7 @@ FINNHUB_API_URL=https://finnhub.io/api/v1
 FINNHUB_WS_URL=wss://ws.finnhub.io
 
 # -- Firebase Admin (push notifications)
-FIREBASE_PROJECT_ID=your_project
-FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxx@your_project.iam.gserviceaccount.com
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account-file.json
 ```
 
 | Variable | Required | Default | Description |
@@ -56,9 +54,7 @@ FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY----
 | `FINNHUB_API_KEY` | Yes | — | Finnhub API key (REST + WebSocket) |
 | `FINNHUB_API_URL` | Yes | `https://finnhub.io/api/v1` | Finnhub REST base URL |
 | `FINNHUB_WS_URL` | Yes | `wss://ws.finnhub.io` | Finnhub WebSocket endpoint |
-| `FIREBASE_PROJECT_ID` | Yes | — | Firebase project ID |
-| `FIREBASE_CLIENT_EMAIL` | Yes | — | Firebase service account email |
-| `FIREBASE_PRIVATE_KEY` | Yes | — | Firebase service account private key (literal `\n` escaped) |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Yes | — | Path to Firebase service account JSON file |
 | `PORT` | No | `3000` | HTTP server listen port |
 
 ---

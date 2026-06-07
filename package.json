@@ -17,7 +17,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:e2e": "jest --testRegex .e2e.spec.ts$",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "migration:generate": "pnpm run typeorm migration:generate -d src/data-source.ts",
     "migration:run": "pnpm run typeorm migration:run -d src/data-source.ts",
@@ -85,7 +85,7 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
@@ -96,10 +96,10 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/../src/$1"
+      "^@/(.*)$": "<rootDir>/src/$1"
     },
     "setupFilesAfterEnv": [
-      "<rootDir>/setupTests.ts"
+      "./test/setupTests.ts"
     ]
   }
 }
