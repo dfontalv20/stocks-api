@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { WsAdapter } from '@nestjs/platform-ws';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { addAppConfig } from './utils/app';
@@ -24,6 +25,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, documentFactory, {
     yamlDocumentUrl: '/api.yaml',
   });
+  app.useWebSocketAdapter(new WsAdapter(app));
   addAppConfig(app);
   await app.listen(process.env.PORT ?? 3000);
 }

@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
-import { WebSocketGateway } from '@nestjs/websockets';
-import { RawData, WebSocket } from 'ws';
+import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { RawData, WebSocket, WebSocketServer as WsServer } from 'ws';
 import { ConfigService } from '@nestjs/config';
 import { WsStocksData } from './dto/get-stocks.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -14,6 +14,9 @@ export class StocksGateway {
   logger = new Logger(StocksGateway.name);
   private reconnectAttempts = 0;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+  @WebSocketServer()
+  server: WsServer;
 
   constructor(
     private readonly configService: ConfigService,
@@ -68,6 +71,16 @@ export class StocksGateway {
     this.logger.log(data);
     if (data.type === 'trade') {
       this.eventEmitter.emit('trade.update', data);
+      this.broadcastTrade(data);
     }
+  }
+
+  private broadcastTrade(data: WsStocksData): void {
+    const message = JSON.stringify(data);
+    this.server?.clients?.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
   }
 }
