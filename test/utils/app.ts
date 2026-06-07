@@ -1,17 +1,8 @@
-import {
-  ClassSerializerInterceptor,
-  INestApplication,
-  ValidationPipe,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppModule, typeOrmConfig } from '../app.module';
-import { dbOptionsSqlite } from '../data-source';
-export const addAppConfig = (app: INestApplication) => {
-  app.useGlobalPipes(new ValidationPipe());
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(new Reflector()));
-};
+import { AppModule, typeOrmConfig } from '../../src/app.module';
+import { dbOptionsSqlite } from '../../src/data-source';
+import { addAppConfig } from '@/config';
 
 export const createTestModule = () => {
   const module = Test.createTestingModule({

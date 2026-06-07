@@ -1,11 +1,10 @@
 import { INestApplication, HttpStatus } from '@nestjs/common';
-import { createTestApp } from '@/utils/app';
-import { createTestUser } from '@/utils/user';
-import { CreateAlertDto } from './dto/create-alert.dto';
+
+import { CreateAlertDto } from '../src/alerts/dto/create-alert.dto';
 import request from 'supertest';
-import { Alert } from './entities/alert.entity';
+import { Alert } from '../src/alerts/entities/alert.entity';
 import { WsStocksData } from '@/stocks/dto/get-stocks.dto';
-import { AlertsController } from './alerts.controller';
+import { AlertsController } from '../src/alerts/alerts.controller';
 import { StocksGateway } from '@/stocks/stocks.gateway';
 import {
   FirebaseService,
@@ -13,6 +12,8 @@ import {
 } from '@/firebase/firebase.service';
 import waitForExpect from 'wait-for-expect';
 import { BatchResponse } from 'firebase-admin/messaging';
+import { createTestApp } from './utils/app';
+import { createTestUser } from './utils/user';
 
 describe('AlertsModule', () => {
   let app: INestApplication;

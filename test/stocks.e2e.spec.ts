@@ -1,14 +1,15 @@
-import { addAppConfig, createTestModule } from '../utils/app';
+import { createTestModule } from './utils/app';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { CreateUserDto } from '../auth/dto/create-user.dto';
+import { CreateUserDto } from '../src/auth/dto/create-user.dto';
 import {
   Quote,
   RecommendationTrend,
   RecommendationWithQuote,
   StockSearchResponse,
-} from './dto/get-stocks.dto';
-import { StocksService } from './stocks.service';
+} from '../src/stocks/dto/get-stocks.dto';
+import { StocksService } from '../src/stocks/stocks.service';
+import { addAppConfig } from '@/config';
 
 describe('StocksModule', () => {
   let app: INestApplication;

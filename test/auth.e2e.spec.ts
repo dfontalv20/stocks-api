@@ -1,9 +1,9 @@
-import { CreateUserDto } from './dto/create-user.dto';
-import { User } from './entities/user.entity';
+import { CreateUserDto } from '../src/auth/dto/create-user.dto';
+import { User } from '../src/auth/entities/user.entity';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { SignInDto } from './dto/sign-in.dto';
-import { createTestApp } from '../utils/app';
+import { SignInDto } from '../src/auth/dto/sign-in.dto';
+import { createTestApp } from './utils/app';
 
 describe('AuthModule', () => {
   let app: INestApplication;
