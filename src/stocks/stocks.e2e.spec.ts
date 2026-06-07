@@ -1,4 +1,4 @@
-import { addAppConfig } from '../utils/app';
+import { addAppConfig, createTestModule } from '../utils/app';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
@@ -8,10 +8,6 @@ import {
   RecommendationWithQuote,
   StockSearchResponse,
 } from './dto/get-stocks.dto';
-import { Test } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { dbOptionsSqlite } from '@/data-source';
-import { AppModule } from '@/app.module';
 import { StocksService } from './stocks.service';
 
 describe('StocksModule', () => {
@@ -75,9 +71,7 @@ describe('StocksModule', () => {
       getStocks: jest.fn(() => Promise.resolve(result)),
       getStockInfo: jest.fn(() => Promise.resolve(recommendationsWithQuote)),
     } satisfies Partial<StocksService>;
-    const module = await Test.createTestingModule({
-      imports: [TypeOrmModule.forRoot(dbOptionsSqlite), AppModule],
-    })
+    const module = await createTestModule()
       .overrideProvider(StocksService)
       .useValue(mockStocksService)
       .compile();

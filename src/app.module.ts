@@ -11,11 +11,15 @@ import { StocksGateway } from './stocks/stocks.gateway';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { FirebaseModule } from './firebase/firebase.module';
 
+export const typeOrmConfig = TypeOrmModule.forRoot({
+  ...dbOptions,
+  autoLoadEntities: true,
+});
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     EventEmitterModule.forRoot({ global: true }),
-    TypeOrmModule.forRoot({ ...dbOptions, autoLoadEntities: true }),
+    typeOrmConfig,
     JwtModule.registerAsync({
       global: true,
       imports: [ConfigModule],
