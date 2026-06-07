@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -35,7 +33,6 @@ import { FirebaseModule } from './firebase/firebase.module';
     StocksModule,
     AlertsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService, StocksGateway],
+  providers: [StocksGateway],
 })
 export class AppModule {}

@@ -159,7 +159,7 @@ describe('AlertsModule', () => {
         {
           to: 'test-fcm-token',
           title: 'Trade Alert',
-          body: `The stock ${alert.stock} has reached your target price of ${alert.price}`,
+          body: `The stock ${alert.stock} has reached your target price of $${alert.price}`,
         } satisfies NotificationMessage,
       ]);
     });

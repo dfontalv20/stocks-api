@@ -6,7 +6,7 @@ import {
 import { CreateAlertDto } from './dto/create-alert.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Alert } from './entities/alert.entity';
-import { In, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { WsStocksData } from '@/stocks/dto/get-stocks.dto';
 import { FirebaseService } from '@/firebase/firebase.service';
 
@@ -53,7 +53,7 @@ export class AlertsService {
       newPrices.set(trade.s, trade.p);
     });
     const alerts = await this.alertsRepository.find({
-      where: { stock: In([...newPrices.keys()]) },
+      where: { stock: In([...newPrices.keys()]), notifiedAt: IsNull() },
       relations: { user: true },
     });
     const alertsToNotify = alerts.filter((alert) => {
@@ -73,7 +73,7 @@ export class AlertsService {
         .map((alert) => ({
           to: alert.user.fcmToken,
           title: 'Trade Alert',
-          body: `The stock ${alert.stock} has reached your target price of ${alert.price}`,
+          body: `The stock ${alert.stock} has reached your target price of $${alert.price}`,
         })),
     );
     const successfulAlerts: Alert[] = [];
