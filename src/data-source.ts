@@ -1,6 +1,9 @@
 import { DataSource, type DataSourceOptions } from 'typeorm';
 import { config } from 'dotenv';
 import { ConfigService } from '@nestjs/config';
+import { types } from 'pg';
+
+types.setTypeParser(types.builtins.NUMERIC, (val) => parseFloat(val));
 
 config({ quiet: true });
 const configService = new ConfigService();

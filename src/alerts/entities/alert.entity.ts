@@ -17,7 +17,11 @@ export class Alert {
   stock: string;
 
   @ApiProperty()
-  @Column()
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+  })
   price: number;
 
   @ApiProperty()

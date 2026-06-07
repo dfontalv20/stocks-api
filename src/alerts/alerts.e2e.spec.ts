@@ -176,4 +176,17 @@ describe('AlertsModule', () => {
     const response = await deleteAlert(999);
     expect(response.status).toBe(HttpStatus.NOT_FOUND);
   });
+
+  it('should allow create alert with decimal', async () => {
+    const alert = { price: 100.523, stock: 'AAPL' };
+    await createAlert(alert);
+    const alerts = await getUserAlerts();
+    expect(alerts.ok).toBeTruthy();
+    const body = alerts.body as Alert[];
+    expect(body.length).toBeGreaterThan(0);
+    const createdAlert = body.find((a) => a.stock === alert.stock);
+    expect(createdAlert).toBeDefined();
+    expect(typeof createdAlert!.price).toBe('number');
+    expect(createdAlert!.price).toBeCloseTo(alert.price);
+  });
 });
