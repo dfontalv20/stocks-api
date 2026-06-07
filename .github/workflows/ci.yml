@@ -9,6 +9,15 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ci-test-secret
+      FINNHUB_WS_URL: wss://ws.finnhub.io
+      DB_CONNECTION: connection
+      FINNHUB_API_KEY: key
+      FINNHUB_API_URL: https://finnhub.io/api/v1
+      FIREBASE_PROJECT_ID: id
+      FIREBASE_CLIENT_EMAIL: email
+      FIREBASE_PRIVATE_KEY: key
 
     strategy:
       matrix:
@@ -30,13 +39,3 @@ jobs:
       - run: pnpm run lint
       - run: pnpm test
       - run: pnpm run build
-
-        env:
-          JWT_SECRET: ci-test-secret
-          FINNHUB_WS_URL: wss://ws.finnhub.io
-          DB_CONNECTION: connection
-          FINNHUB_API_KEY: key
-          FINNHUB_API_URL: https://finnhub.io/api/v1
-          FIREBASE_PROJECT_ID: id
-          FIREBASE_CLIENT_EMAIL: email
-          FIREBASE_PRIVATE_KEY: key
