@@ -34,3 +34,9 @@ jobs:
         env:
           JWT_SECRET: ci-test-secret
           FINNHUB_WS_URL: wss://ws.finnhub.io
+          DB_CONNECTION: connection
+          FINNHUB_API_KEY: key
+          FINNHUB_API_URL: https://finnhub.io/api/v1
+          FIREBASE_PROJECT_ID: id
+          FIREBASE_CLIENT_EMAIL: email
+          FIREBASE_PRIVATE_KEY: key
