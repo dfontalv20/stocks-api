@@ -40,6 +40,12 @@ describe('AlertsModule', () => {
       .send(dto);
   };
 
+  const deleteAlert = async (id: number, token = accessToken) => {
+    return request(app.getHttpServer())
+      .delete(`/alerts/${id}`)
+      .set('Authorization', `Bearer ${token}`);
+  };
+
   const getUserAlerts = async (token = accessToken) => {
     return request(app.getHttpServer())
       .get('/alerts')
@@ -75,9 +81,7 @@ describe('AlertsModule', () => {
     const res = await createAlert({ price: 100, stock: 'AAPL' });
     const body = res.body as Alert;
     const alertId = body.id;
-    const deleteRes = await request(app.getHttpServer())
-      .delete(`/alerts/${alertId}`)
-      .set('Authorization', `Bearer ${accessToken}`);
+    const deleteRes = await deleteAlert(alertId);
     expect(deleteRes.ok).toBeTruthy();
   });
 
@@ -161,5 +165,10 @@ describe('AlertsModule', () => {
     const notifiedAlert = body.find((a) => a.stock === alert.stock);
     expect(notifiedAlert).toBeDefined();
     expect(notifiedAlert!.notifiedAt).not.toBeNull();
+  });
+
+  it("should return not found when try to delete an alert that doesn't exist", async () => {
+    const response = await deleteAlert(999);
+    expect(response.status).toBe(HttpStatus.NOT_FOUND);
   });
 });
