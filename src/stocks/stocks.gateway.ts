@@ -15,7 +15,7 @@ export class StocksGateway {
     private readonly eventEmitter: EventEmitter2,
   ) {
     this.client = new WebSocket(
-      `wss://ws.finnhub.io?token=${this.configService.get<string>('FINNHUB_API_KEY')}`,
+      `${this.configService.getOrThrow<string>('FINNHUB_WS_URL')}?token=${this.configService.get<string>('FINNHUB_API_KEY')}`,
     );
     this.client.on('open', () => {
       this.logger.log('WebSocket connected');
