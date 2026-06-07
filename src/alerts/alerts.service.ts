@@ -59,7 +59,7 @@ export class AlertsService {
     const alertsToNotify = alerts.filter((alert) => {
       const newPrice = newPrices.get(alert.stock);
       if (newPrice === undefined) return false;
-      return alert.price < newPrice;
+      return alert.price <= newPrice;
     });
 
     if (alertsToNotify.length === 0) return;
