@@ -5,6 +5,9 @@
 - pnpm (see `pnpm-workspace.yaml` — single package, but `allowBuilds` is whitelisted for native deps like `bcrypt`, `better-sqlite3`, `firebase`).
 - TS: `module: nodenext`, target ES2023, `@/*` -> `src/*` (see `tsconfig.json` + `package.json` `jest.moduleNameMapper`).
 
+## CI
+- `.github/workflows/ci.yml` runs on push/PR to `main`: `pnpm install --frozen-lockfile → lint → build → test`. Two env vars required: `JWT_SECRET` and `FINNHUB_WS_URL` (no real Finnhub key needed because `setupTests.ts` mocks `ws`).
+
 ## Commands
 - `pnpm install` — install (uses `pnpm-workspace.yaml` allow-list for native builds).
 - `pnpm run start:dev` — nest watch on port `process.env.PORT ?? 3000`.
