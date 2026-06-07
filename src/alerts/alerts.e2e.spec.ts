@@ -83,6 +83,11 @@ describe('AlertsModule', () => {
     const alertId = body.id;
     const deleteRes = await deleteAlert(alertId);
     expect(deleteRes.ok).toBeTruthy();
+    const alertsRes = await getUserAlerts();
+    expect(alertsRes.ok).toBeTruthy();
+    const alerts = alertsRes.body as Alert[];
+    const deletedAlert = alerts.find((i) => i.id === alertId);
+    expect(deletedAlert).toBeUndefined();
   });
 
   it('should not delete an alert from another user', async () => {

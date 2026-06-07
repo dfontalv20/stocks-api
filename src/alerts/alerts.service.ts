@@ -41,7 +41,7 @@ export class AlertsService {
     if (alert.user.id !== userId) {
       throw new UnauthorizedException('Unauthorized');
     }
-    return this.alertsRepository.delete(alert);
+    return this.alertsRepository.remove(alert);
   }
 
   async checkTrades(info: WsStocksData) {

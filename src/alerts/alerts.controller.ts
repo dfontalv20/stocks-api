@@ -7,6 +7,8 @@ import {
   Delete,
   Req,
   UseGuards,
+  HttpStatus,
+  HttpCode,
 } from '@nestjs/common';
 import { AlertsService } from './alerts.service';
 import { CreateAlertDto } from './dto/create-alert.dto';
@@ -43,10 +45,10 @@ export class AlertsController {
   }
 
   @Delete(':id')
-  @ApiResponse({ status: 200, type: () => AlertResponse })
-  remove(@Req() request: Request, @Param('id') id: string) {
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@Req() request: Request, @Param('id') id: string) {
     const user = request['user'] as User;
-    return this.alertsService.remove(+id, user.id);
+    await this.alertsService.remove(+id, user.id);
   }
 
   @OnEvent('trade.update')
