@@ -12,6 +12,7 @@ import {
   NotificationMessage,
 } from '@/firebase/firebase.service';
 import waitForExpect from 'wait-for-expect';
+import { BatchResponse } from 'firebase-admin/messaging';
 
 describe('AlertsModule', () => {
   let app: INestApplication;
@@ -39,6 +40,12 @@ describe('AlertsModule', () => {
       .send(dto);
   };
 
+  const getUserAlerts = async (token = accessToken) => {
+    return request(app.getHttpServer())
+      .get('/alerts')
+      .set('Authorization', `Bearer ${token}`);
+  };
+
   it('should create an alert', async () => {
     const res = await createAlert({ price: 100, stock: 'AAPL' });
     expect(res.ok).toBeTruthy();
@@ -53,9 +60,7 @@ describe('AlertsModule', () => {
       { price: 100, stock: 'AAPL3' },
     ];
     await Promise.all(alerts.map((alert) => createAlert(alert)));
-    const res = await request(app.getHttpServer())
-      .get('/alerts')
-      .set('Authorization', `Bearer ${accessToken}`);
+    const res = await getUserAlerts();
     expect(res.ok).toBeTruthy();
     const body = res.body as Alert[];
     expect(body.length).toBe(alerts.length);
@@ -118,7 +123,13 @@ describe('AlertsModule', () => {
     expect(spy).toHaveBeenCalledWith(tradeUpdate);
   });
 
-  it('should send notification when trade update matches alert', async () => {
+  it('should send notification when trade update matches alert and mark as notified', async () => {
+    (firebaseService.sendNotification as jest.Mock).mockResolvedValueOnce({
+      failureCount: 0,
+      successCount: 1,
+      responses: [{ success: true, messageId: '1' }],
+    } satisfies BatchResponse);
+
     const alert = { price: 100, stock: 'AAPL' };
     await createAlert(alert);
     const update = { p: 150, s: 'AAPL', t: 1, v: 1 };
@@ -126,6 +137,7 @@ describe('AlertsModule', () => {
       type: 'trade',
       data: [update],
     };
+
     let spy: jest.SpyInstance = jest.spyOn(
       AlertsController.prototype,
       'handleTradeUpdate',
@@ -142,5 +154,12 @@ describe('AlertsModule', () => {
         } satisfies NotificationMessage,
       ]);
     });
+    const alerts = await getUserAlerts();
+    expect(alerts.ok).toBeTruthy();
+    const body = alerts.body as Alert[];
+    expect(body.length).toBeGreaterThan(0);
+    const notifiedAlert = body.find((a) => a.stock === alert.stock);
+    expect(notifiedAlert).toBeDefined();
+    expect(notifiedAlert!.notifiedAt).not.toBeNull();
   });
 });

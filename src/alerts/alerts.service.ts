@@ -63,9 +63,12 @@ export class AlertsService {
     });
 
     if (alertsToNotify.length === 0) return;
+    await this.notifyAlert(alertsToNotify);
+  }
 
-    await this.firebaseService.sendNotification(
-      alertsToNotify
+  async notifyAlert(alerts: Alert[]) {
+    const result = await this.firebaseService.sendNotification(
+      alerts
         .filter((alert) => !!alert.user.fcmToken)
         .map((alert) => ({
           to: alert.user.fcmToken,
@@ -73,5 +76,12 @@ export class AlertsService {
           body: `The stock ${alert.stock} has reached your target price of ${alert.price}`,
         })),
     );
+    const successfulAlerts: Alert[] = [];
+    result.responses.forEach((response, index) => {
+      if (!response.success) return;
+      alerts[index].notifiedAt = new Date();
+      successfulAlerts.push(alerts[index]);
+    });
+    await this.alertsRepository.save(successfulAlerts);
   }
 }
