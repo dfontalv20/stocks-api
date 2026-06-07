@@ -2,7 +2,12 @@ import { addAppConfig } from '../utils/app';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
-import { RecommendationTrend, StockSearchResponse } from './dto/get-stocks.dto';
+import {
+  Quote,
+  RecommendationTrend,
+  RecommendationWithQuote,
+  StockSearchResponse,
+} from './dto/get-stocks.dto';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dbOptionsSqlite } from '@/data-source';
@@ -31,12 +36,9 @@ describe('StocksModule', () => {
       .set('Authorization', `Bearer ${token}`);
   };
 
-  const sendGetRecommendationsRequest = (
-    query: string,
-    token = accessToken,
-  ) => {
+  const sendGetStockInfoRequest = (symbol: string, token = accessToken) => {
     return request(app.getHttpServer())
-      .get(`/stocks/recommendations${query}`)
+      .get(`/stocks/${symbol}`)
       .set('Authorization', `Bearer ${token}`);
   };
 
@@ -56,9 +58,22 @@ describe('StocksModule', () => {
         strongSell: 0,
       },
     ];
+    const quote: Quote = {
+      currentPrice: 261.74,
+      highPriceOfTheDay: 263.31,
+      lowPriceOfTheDay: 260.68,
+      openPriceOfTheDay: 261.07,
+      previousClosePrice: 259.45,
+      change: 2.29,
+      percentChange: 0.8828,
+    };
+    const recommendationsWithQuote: RecommendationWithQuote = {
+      recommendations,
+      quote,
+    };
     const mockStocksService = {
       getStocks: jest.fn(() => Promise.resolve(result)),
-      getRecommendations: jest.fn(() => Promise.resolve(recommendations)),
+      getStockInfo: jest.fn(() => Promise.resolve(recommendationsWithQuote)),
     } satisfies Partial<StocksService>;
     const module = await Test.createTestingModule({
       imports: [TypeOrmModule.forRoot(dbOptionsSqlite), AppModule],
@@ -121,34 +136,30 @@ describe('StocksModule', () => {
     expect(res.ok).toBeFalsy();
   });
 
-  it('should return a list of recommendations', async () => {
-    const res = await sendGetRecommendationsRequest('?symbol=AAPL');
+  it('should return stock info for a given symbol', async () => {
+    const res = await sendGetStockInfoRequest('AAPL');
     expect(res.ok).toBeTruthy();
-    expect(res.body).toBeDefined();
-    expect(Array.isArray(res.body)).toBeTruthy();
+    const body = res.body as RecommendationWithQuote;
+    expect(body).toBeDefined();
+    expect(Array.isArray(body.recommendations)).toBeTruthy();
   });
 
-  it('should return unauthorized for recommendations when no token is provided', async () => {
-    const res = await request(app.getHttpServer()).get(
-      '/stocks/recommendations?symbol=AAPL',
-    );
+  it('should return unauthorized for stock info when no token is provided', async () => {
+    const res = await request(app.getHttpServer()).get('/stocks/AAPL');
     expect(res.status).toBe(HttpStatus.UNAUTHORIZED);
   });
 
-  it('should return unauthorized for recommendations when an invalid token is provided', async () => {
-    const res = await sendGetRecommendationsRequest(
-      '?symbol=AAPL',
-      'invalid-token',
-    );
+  it('should return unauthorized for stock info when an invalid token is provided', async () => {
+    const res = await sendGetStockInfoRequest('AAPL', 'invalid-token');
     expect(res.status).toBe(HttpStatus.UNAUTHORIZED);
   });
 
-  it('should return recommendation items with required fields', async () => {
-    const res = await sendGetRecommendationsRequest('?symbol=AAPL');
+  it('should return recommendation and quote items with required fields', async () => {
+    const res = await sendGetStockInfoRequest('AAPL');
     expect(res.ok).toBeTruthy();
-    const body = res.body as RecommendationTrend[];
-    expect(body.length).toBeGreaterThan(0);
-    const item = body[0];
+    const body = res.body as RecommendationWithQuote;
+    expect(body.recommendations.length).toBeGreaterThan(0);
+    const item = body.recommendations[0];
     expect(item.symbol).toBeDefined();
     expect(item.buy).toBeDefined();
     expect(item.hold).toBeDefined();
@@ -156,10 +167,13 @@ describe('StocksModule', () => {
     expect(item.sell).toBeDefined();
     expect(item.strongBuy).toBeDefined();
     expect(item.strongSell).toBeDefined();
-  });
-
-  it('should handle recommendations with no symbol parameter', async () => {
-    const res = await sendGetRecommendationsRequest('');
-    expect(res.ok).toBeFalsy();
+    expect(body.quote).toBeDefined();
+    expect(body.quote.currentPrice).toBeDefined();
+    expect(body.quote.highPriceOfTheDay).toBeDefined();
+    expect(body.quote.lowPriceOfTheDay).toBeDefined();
+    expect(body.quote.openPriceOfTheDay).toBeDefined();
+    expect(body.quote.previousClosePrice).toBeDefined();
+    expect(body.quote.change).toBeDefined();
+    expect(body.quote.percentChange).toBeDefined();
   });
 });

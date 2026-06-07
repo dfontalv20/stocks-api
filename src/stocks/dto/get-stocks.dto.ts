@@ -25,12 +25,6 @@ export class GetStocksDto {
   search: string;
 }
 
-export class GetRecommendationDto {
-  @ApiProperty()
-  @IsNotEmpty()
-  symbol: string;
-}
-
 export class RecommendationTrend {
   @ApiProperty()
   symbol: string;
@@ -54,6 +48,37 @@ export class RecommendationTrend {
   strongSell: number;
 }
 
+export class Quote {
+  @ApiProperty()
+  currentPrice: number;
+
+  @ApiProperty()
+  highPriceOfTheDay: number;
+
+  @ApiProperty()
+  lowPriceOfTheDay: number;
+
+  @ApiProperty()
+  openPriceOfTheDay: number;
+
+  @ApiProperty()
+  previousClosePrice: number;
+
+  @ApiProperty()
+  change: number;
+
+  @ApiProperty()
+  percentChange: number;
+}
+
+export class RecommendationWithQuote {
+  @ApiProperty({ type: () => [RecommendationTrend] })
+  recommendations: RecommendationTrend[];
+
+  @ApiProperty({ type: () => Quote })
+  quote: Quote;
+}
+
 export interface WsStocksTradeData {
   /** Last price */
   p: number;
@@ -73,3 +98,13 @@ export interface WsStocksResponse<T extends string = string, D = undefined> {
 export type WsStocksData =
   | WsStocksResponse<'ping'>
   | WsStocksResponse<'trade', WsStocksTradeData[]>;
+
+export type FinnhubQuote = {
+  c: number;
+  h: number;
+  l: number;
+  o: number;
+  pc: number;
+  d: number;
+  dp: number;
+};

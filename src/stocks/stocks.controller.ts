@@ -1,10 +1,16 @@
-import { Controller, Get, HttpStatus, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpStatus,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { StocksService } from './stocks.service';
 import { AuthGuard } from '../auth/auth.guard';
 import {
-  GetRecommendationDto,
   GetStocksDto,
-  RecommendationTrend,
+  RecommendationWithQuote,
   StockSearchResponse,
 } from './dto/get-stocks.dto';
 import { ApiResponse } from '@nestjs/swagger';
@@ -20,9 +26,9 @@ export class StocksController {
     return this.stocksService.getStocks(params.search);
   }
 
-  @Get('recommendations')
-  @ApiResponse({ status: HttpStatus.OK, type: [RecommendationTrend] })
-  async getRecommendations(@Query() params: GetRecommendationDto) {
-    return this.stocksService.getRecommendations(params.symbol);
+  @Get(':symbol')
+  @ApiResponse({ status: HttpStatus.OK, type: () => RecommendationWithQuote })
+  async getStockInfo(@Param('symbol') symbol: string) {
+    return this.stocksService.getStockInfo(symbol);
   }
 }
