@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { AxiosInstance } from 'axios';
-import { StockSearchResponse } from './dto/get-stocks.dto';
+import { StockSearchResponse, RecommendationTrend } from './dto/get-stocks.dto';
 
 @Injectable()
 export class StocksService {
@@ -20,7 +20,15 @@ export class StocksService {
   async getStocks(search: string): Promise<StockSearchResponse> {
     return (
       await this.client.get<StockSearchResponse>('/search', {
-        params: { q: search },
+        params: { q: search, exchange: 'US' },
+      })
+    ).data;
+  }
+
+  async getRecommendations(symbol: string): Promise<RecommendationTrend[]> {
+    return (
+      await this.client.get<RecommendationTrend[]>('/stock/recommendation', {
+        params: { symbol },
       })
     ).data;
   }

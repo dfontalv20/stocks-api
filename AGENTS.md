@@ -37,7 +37,7 @@ There are two Jest configs and two kinds of tests; this is the most-missed thing
 - `JWT_SECRET` — required (no default; `ConfigService.getOrThrow`).
 - `JWT_EXPIRES_IN` — optional, default `'1h'` (`ms` `StringValue`).
 - `FINNHUB_API_KEY` — required at boot for REST search and for `StocksGateway`.
-- `FINNHUB_API_URL` — required at boot; full REST endpoint (default in `.env`: `https://finnhub.io/api/v1/search`).
+- `FINNHUB_API_URL` — required at boot; REST base URL used as axios `baseURL` (default in `.env`: `https://finnhub.io/api/v1`). Endpoints compose as relative paths (e.g. `/search`, `/stock/recommendation`).
 - `FINNHUB_WS_URL` — required at boot; WS base (default in `.env`: `wss://ws.finnhub.io`); `?token=…` is composed in code.
 - `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` — required at boot for `FirebaseService`; the private key in `.env` has escaped `\n` and is read as a single string.
 

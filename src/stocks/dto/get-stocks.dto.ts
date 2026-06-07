@@ -25,6 +25,35 @@ export class GetStocksDto {
   search: string;
 }
 
+export class GetRecommendationDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  symbol: string;
+}
+
+export class RecommendationTrend {
+  @ApiProperty()
+  symbol: string;
+
+  @ApiProperty()
+  buy: number;
+
+  @ApiProperty()
+  hold: number;
+
+  @ApiProperty()
+  period: string;
+
+  @ApiProperty()
+  sell: number;
+
+  @ApiProperty()
+  strongBuy: number;
+
+  @ApiProperty()
+  strongSell: number;
+}
+
 export interface WsStocksTradeData {
   /** Last price */
   p: number;
