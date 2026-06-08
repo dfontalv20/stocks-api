@@ -78,11 +78,11 @@ pnpm run start:prod
 src/
 ├── main.ts                       # Bootstrap: Swagger, WsAdapter, ValidationPipe
 ├── app.module.ts                 # Root module — global config, typeorm, jwt, event emitter
+├── config.ts                     # addAppConfig — ValidationPipe + ClassSerializerInterceptor
 ├── data-source.ts                # TypeORM DataSource (Postgres + SQLite for e2e)
-├── setupTests.ts                 # Auto-mocks ws and firebase for unit tests
 ├── auth/                         # Authentication & user management
 │   ├── auth.module.ts
-│   ├── auth.controller.ts        # POST /auth/signUp, /auth/signIn, GET /auth/user
+│   ├── auth.controller.ts        # POST /auth/signUp, /auth/signIn, POST /auth/signOut, GET /auth/user
 │   ├── auth.service.ts
 │   ├── auth.guard.ts             # Bearer JWT guard (attaches user to request)
 │   ├── dto/
@@ -108,9 +108,15 @@ src/
 ├── firebase/                     # FCM push notification sender
 │   ├── firebase.module.ts
 │   └── firebase.service.ts
-├── migrations/                   # TypeORM migration files (timestamp-prefixed)
-└── utils/                        # Shared test helpers
-    ├── app.ts                    # createTestApp(), addAppConfig()
+└── migrations/                   # TypeORM migration files (timestamp-prefixed)
+
+test/
+├── setupTests.ts                 # Auto-mocks ws and firebase for unit tests
+├── alerts.e2e.spec.ts
+├── auth.e2e.spec.ts
+├── stocks.e2e.spec.ts
+└── utils/
+    ├── app.ts                    # createTestApp(), createTestModule()
     └── user.ts                   # createTestUser()
 ```
 
@@ -139,8 +145,8 @@ pnpm test:e2e -- src/alerts/alerts.e2e.spec.ts
 pnpm test:e2e -- src/alerts/alerts.e2e.spec.ts -t "should create an alert"
 ```
 
-**Unit tests** auto-mock `ws` and `FirebaseService` via `src/setupTests.ts`.  
-**E2E tests** override TypeORM with an in-memory SQLite database (`better-sqlite3`, `synchronize: true`, `dropSchema: true`) using the `createTestApp()` helper from `src/utils/app.ts`. E2E specs live next to source modules (e.g. `src/alerts/alerts.e2e.spec.ts`), **not** in `test/`.
+**Unit tests** auto-mock `ws` and `FirebaseService` via `test/setupTests.ts`.  
+**E2E tests** override TypeORM with an in-memory SQLite database (`better-sqlite3`, `synchronize: true`, `dropSchema: true`) using the `createTestApp()` helper from `test/utils/app.ts`. E2E specs live in `test/` (e.g. `test/auth.e2e.spec.ts`).
 
 ---
 

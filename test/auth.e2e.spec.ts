@@ -145,4 +145,40 @@ describe('AuthModule', () => {
     const res = await sendGetAuthUserRequest('');
     expect(res.status).toBe(HttpStatus.UNAUTHORIZED);
   });
+
+  const sendSignOutRequest = (token: string) => {
+    return request(app.getHttpServer())
+      .post('/auth/signOut')
+      .set('Authorization', `Bearer ${token}`);
+  };
+
+  it('should successfully sign out and clear fcm token', async () => {
+    const userDto: SignInDto = {
+      password: '12345',
+      username: `test-user-${new Date().getTime()}`,
+      fcmToken: 'fcm-token-to-clear',
+    };
+    await sendSignUpRequest(userDto);
+    const signInRes = await sendSignInRequest(userDto);
+    const { accessToken } = signInRes.body as { accessToken: string };
+
+    const preUser = (await sendGetAuthUserRequest(accessToken)).body as User;
+    expect(preUser.fcmToken).toBe('fcm-token-to-clear');
+
+    const signOutRes = await sendSignOutRequest(accessToken);
+    expect(signOutRes.status).toBe(HttpStatus.NO_CONTENT);
+
+    const postUser = (await sendGetAuthUserRequest(accessToken)).body as User;
+    expect(postUser.fcmToken).toBeNull();
+  });
+
+  it('should return unauthorized when signing out without token', async () => {
+    const res = await request(app.getHttpServer()).post('/auth/signOut');
+    expect(res.status).toBe(HttpStatus.UNAUTHORIZED);
+  });
+
+  it('should return unauthorized when signing out with invalid token', async () => {
+    const res = await sendSignOutRequest('invalid-token');
+    expect(res.status).toBe(HttpStatus.UNAUTHORIZED);
+  });
 });

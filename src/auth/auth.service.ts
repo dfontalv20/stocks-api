@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   Request,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -65,5 +66,14 @@ export class AuthService {
 
   async getUserById(id: number): Promise<User> {
     return this.userRepository.findOneByOrFail({ id });
+  }
+
+  async updateFCMToken(id: number, fcmToken: string | null): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.fcmToken = fcmToken;
+    return this.userRepository.save(user);
   }
 }
