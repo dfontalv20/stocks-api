@@ -22,6 +22,6 @@ export class User {
   alerts: Alert[];
 
   @ApiProperty()
-  @Column({ nullable: true, default: null })
-  fcmToken: string;
+  @Column({ type: 'varchar', nullable: true, default: null })
+  fcmToken: string | null;
 }

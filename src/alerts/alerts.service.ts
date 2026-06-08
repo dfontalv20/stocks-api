@@ -71,7 +71,7 @@ export class AlertsService {
       alerts
         .filter((alert) => !!alert.user.fcmToken)
         .map((alert) => ({
-          to: alert.user.fcmToken,
+          to: alert.user.fcmToken!,
           title: 'Trade Alert',
           body: `The stock ${alert.stock} has reached your target price of $${alert.price}`,
         })),

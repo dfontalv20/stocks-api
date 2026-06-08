@@ -38,4 +38,11 @@ export class AuthController {
   getUser(@Req() req: Request) {
     return req['user'] as User;
   }
+
+  @UseGuards(AuthGuard)
+  @Post('signOut')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  signOut(@Req() req: Request) {
+    return this.authService.updateFCMToken((req['user'] as User).id, null);
+  }
 }
